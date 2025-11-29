@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthTrack - BMI Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .section-header h2 {
+            color: #333;
+            font-size: 1.8em;
+        }
+        
+        .input-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 0.95em;
+        }
+        
+        input {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        input.error {
+            border-color: #f44336;
+        }
+        
+        .error-message {
+            color: #f44336;
+            font-size: 0.85em;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .error-message.show {
+            display: block;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+        }
+        
+        .result-box {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .result-box.show {
+            display: block;
+        }
+        
+        .bmi-value {
+            font-size: 3em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .bmi-category {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+        
+        .bmi-advice {
+            font-size: 0.95em;
+            opacity: 0.9;
+        }
+        
+        .result-box.normal {
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+        }
+        
+        .result-box.underweight {
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+        }
+        
+        .result-box.overweight {
+            background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+        }
+        
+        .result-box.obese {
+            background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        tbody tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            display: inline-block;
+        }
+        
+        .status-underweight { 
+            background: #dbeafe; 
+            color: #1e40af; 
+        }
+        
+        .status-normal { 
+            background: #dcfce7; 
+            color: #15803d; 
+        }
+        
+        .status-overweight { 
+            background: #fed7aa; 
+            color: #c2410c; 
+        }
+        
+        .status-obese { 
+            background: #fecaca; 
+            color: #b91c1c; 
+        }
+        
+        .btn-delete {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: background 0.2s;
+        }
+        
+        .btn-delete:hover {
+            background: #dc2626;
+        }
+        
+        .chart-container {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 10px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6b7280;
+        }
+        
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        .bmi-legend {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .legend-item {
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .legend-item h4 {
+            margin-bottom: 5px;
+            font-size: 0.95em;
+        }
+        
+        .legend-item p {
+            font-size: 0.85em;
+            opacity: 0.8;
+        }
+        
+        @media (max-width: 768px) {
+            .input-section {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .bmi-value {
+                font-size: 2.5em;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>
+                <span>🏥</span>
+                <span>HealthTrack</span>
+            </h1>
+            <p class="subtitle">ระบบติดตามค่า BMI และประวัติสุขภาพ</p>
+        </header>
+        
+        <!-- Input Section -->
+        <div class="card">
+            <div class="section-header">
+                <span style="font-size: 1.5em;">📊</span>
+                <h2>คำนวณค่า BMI</h2>
+            </div>
+            
+            <div class="input-section">
+                <div class="input-group">
+                    <label for="weight">น้ำหนัก (กิโลกรัม)</label>
+                    <input type="number" id="weight" placeholder="เช่น 65" min="1" max="300" step="0.1">
+                    <span class="error-message" id="weight-error">น้ำหนักต้องอยู่ระหว่าง 1-300 กิโลกรัม</span>
+                </div>
+                
+                <div class="input-group">
+                    <label for="height">ส่วนสูง (เซนติเมตร)</label>
+                    <input type="number" id="height" placeholder="เช่น 170" min="1" max="300" step="0.1">
+                    <span class="error-message" id="height-error">ส่วนสูงต้องอยู่ระหว่าง 1-300 เซนติเมตร</span>
+                </div>
+            </div>
+            
+            <button class="btn-primary" onclick="calculateAndSave()">คำนวณและบันทึก</button>
+            
+            <!-- Result Display -->
+            <div class="result-box" id="result-box">
+                <div style="font-size: 1.2em; opacity: 0.9;">ค่า BMI ของคุณคือ</div>
+                <div class="bmi-value" id="bmi-value">0</div>
+                <div class="bmi-category" id="bmi-category"></div>
+                <div class="bmi-advice" id="bmi-advice"></div>
+            </div>
+        </div>
+        
+        <!-- History Table -->
+        <div class="card" id="history-card">
+            <div class="section-header">
+                <span style="font-size: 1.5em;">📋</span>
+                <h2>ประวัติการวัด</h2>
+            </div>
+            
+            <div id="history-content">
+                <div class="empty-state">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <p style="font-size: 1.2em; margin-bottom: 10px;">ยังไม่มีข้อมูลการวัด</p>
+                    <p>เริ่มต้นโดยการกรอกน้ำหนักและส่วนสูงด้านบน</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Chart Section -->
+        <div class="card hidden" id="chart-card">
+            <div class="section-header">
+                <span style="font-size: 1.5em;">📈</span>
+                <h2>กราฟแสดงแนวโน้ม BMI</h2>
+            </div>
+            
+            <div class="chart-container">
+                <canvas id="bmiChart"></canvas>
+            </div>
+
+            <div class="bmi-legend">
+                <div class="legend-item" style="background: #dbeafe;">
+                    <h4 style="color: #1e40af;">ผอม</h4>
+                    <p style="color: #1e40af;">< 18.5</p>
+                </div>
+                <div class="legend-item" style="background: #dcfce7;">
+                    <h4 style="color: #15803d;">ปกติ</h4>
+                    <p style="color: #15803d;">18.5 - 24.9</p>
+                </div>
+                <div class="legend-item" style="background: #fed7aa;">
+                    <h4 style="color: #c2410c;">น้ำหนักเกิน</h4>
+                    <p style="color: #c2410c;">25 - 29.9</p>
+                </div>
+                <div class="legend-item" style="background: #fecaca;">
+                    <h4 style="color: #b91c1c;">อ้วน</h4>
+                    <p style="color: #b91c1c;">≥ 30</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let records = [];
+        let chart = null;
+
+        // Load records from localStorage on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            loadRecords();
+            renderHistory();
+            updateChart();
+        });
+
+        // Load records from localStorage
+        function loadRecords() {
+            const saved = localStorage.getItem('bmiRecords');
+            if (saved) {
+                records = JSON.parse(saved);
+            }
+        }
+
+        // Save records to localStorage
+        function saveRecords() {
+            localStorage.setItem('bmiRecords', JSON.stringify(records));
+        }
+
+        // Calculate BMI
+        function calculateBMI(weight, height) {
+            const heightM = height / 100;
+            return (weight / (heightM * heightM)).toFixed(1);
+        }
+
+        // Get BMI Category
+        function getBMICategory(bmi) {
+            if (bmi < 18.5) {
+                return {
+                    text: 'ผอม',
+                    class: 'underweight',
+                    statusClass: 'status-underweight',
+                    advice: 'คุณควรเพิ่มน้ำหนักให้อยู่ในเกณฑ์ปกติ รับประทานอาหารที่มีประโยชน์และออกกำลังกาย',
+                    icon: '⚠️'
+                };
+            } else if (bmi < 25) {
+                return {
+                    text: 'ปกติ',
+                    class: 'normal',
+                    statusClass: 'status-normal',
+                    advice: 'ยอดเยี่ยม! รักษาระดับนี้ไว้ด้วยการออกกำลังกายและรับประทานอาหารที่มีประโยชน์',
+                    icon: '✅'
+                };
+            } else if (bmi < 30) {
+                return {
+                    text: 'น้ำหนักเกิน',
+                    class: 'overweight',
+                    statusClass: 'status-overweight',
+                    advice: 'ควรลดน้ำหนักด้วยการควบคุมอาหารและออกกำลังกายสม่ำเสมอ',
+                    icon: '⚠️'
+                };
+            } else {
+                return {
+                    text: 'อ้วน',
+                    class: 'obese',
+                    statusClass: 'status-obese',
+                    advice: 'ควรปรึกษาแพทย์เพื่อวางแผนลดน้ำหนักอย่างปลอดภัย',
+                    icon: '❌'
+                };
+            }
+        }
+
+        // Validate input
+        function validateInput() {
+            const weight = parseFloat(document.getElementById('weight').value);
+            const height = parseFloat(document.getElementById('height').value);
+            
+            let isValid = true;
+            
+            // Validate weight
+            const weightInput = document.getElementById('weight');
+            const weightError = document.getElementById('weight-error');
+            if (!weight || weight <= 0 || weight > 300) {
+                weightInput.classList.add('error');
+                weightError.classList.add('show');
+                isValid = false;
+            } else {
+                weightInput.classList.remove('error');
+                weightError.classList.remove('show');
+            }
+            
+            // Validate height
+            const heightInput = document.getElementById('height');
+            const heightError = document.getElementById('height-error');
+            if (!height || height <= 0 || height > 300) {
+                heightInput.classList.add('error');
+                heightError.classList.add('show');
+                isValid = false;
+            } else {
+                heightInput.classList.remove('error');
+                heightError.classList.remove('show');
+            }
+            
+            return isValid;
+        }
+
+        // Calculate and save
+        function calculateAndSave() {
+            if (!validateInput()) return;
+            
+            const weight = parseFloat(document.getElementById('weight').value);
+            const height = parseFloat(document.getElementById('height').value);
+            
+            const bmi = parseFloat(calculateBMI(weight, height));
+            const category = getBMICategory(bmi);
+            
+            // Display result
+            const resultBox = document.getElementById('result-box');
+            document.getElementById('bmi-value').textContent = bmi;
+            document.getElementById('bmi-category').textContent = category.icon + ' ' + category.text;
+            document.getElementById('bmi-advice').textContent = category.advice;
+            
+            resultBox.className = 'result-box show ' + category.class;
+            
+            // Save record
+            const newRecord = {
+                id: Date.now(),
+                weight: weight,
+                height: height,
+                bmi: bmi,
+                category: category.text,
+                date: new Date().toLocaleDateString('th-TH', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                })
+            };
+            
+            records.unshift(newRecord);
+            saveRecords();
+            renderHistory();
+            updateChart();
+        }
+
+        // Render history table
+        function renderHistory() {
+            const historyContent = document.getElementById('history-content');
+            
+            if (records.length === 0) {
+                historyContent.innerHTML = `
+                    <div class="empty-state">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <p style="font-size: 1.2em; margin-bottom: 10px;">ยังไม่มีข้อมูลการวัด</p>
+                        <p>เริ่มต้นโดยการกรอกน้ำหนักและส่วนสูงด้านบน</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let tableHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>วันที่</th>
+                            <th>น้ำหนัก (kg)</th>
+                            <th>ส่วนสูง (cm)</th>
+                            <th>BMI</th>
+                            <th>สถานะ</th>
+                            <th>จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            records.forEach(record => {
+                const category = getBMICategory(record.bmi);
+                tableHTML += `
+                    <tr>
+                        <td>${record.date}</td>
+                        <td>${record.weight}</td>
+                        <td>${record.height}</td>
+                        <td><strong>${record.bmi}</strong></td>
+                        <td><span class="status-badge ${category.statusClass}">${record.category}</span></td>
+                        <td><button class="btn-delete" onclick="deleteRecord(${record.id})">ลบ</button></td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += `
+                    </tbody>
+                </table>
+            `;
+            
+            historyContent.innerHTML = tableHTML;
+        }
+
+        // Delete record
+        function deleteRecord(id) {
+            if (confirm('คุณต้องการลบข้อมูลนี้หรือไม่?')) {
+                records = records.filter(record => record.id !== id);
+                saveRecords();
+                renderHistory();
+                updateChart();
+            }
+        }
+
+        // Update chart
+        function updateChart() {
+            const chartCard = document.getElementById('chart-card');
+            
+            if (records.length < 2) {
+                chartCard.classList.add('hidden');
+                return;
+            }
+            
+            chartCard.classList.remove('hidden');
+            
+            const ctx = document.getElementById('bmiChart').getContext('2d');
+            
+            // Prepare data (reverse for chronological order)
+            const chartData = [...records].reverse();
+            const labels = chartData.map(r => r.date);
+            const data = chartData.map(r => r.bmi);
+            
+            // Destroy existing chart
+            if (chart) {
+                chart.destroy();
+            }
+            
+            // Create new chart
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'BMI',
+                        data: data,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        pointRadius: 6,
+                        pointBackgroundColor: '#667eea',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    const bmi = context.parsed.y;
+                                    const category = getBMICategory(bmi);
+                                    return 'BMI: ' + bmi + ' (' + category.text + ')';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            min: 15,
+                            max: 35,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value;
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Clear errors on input
+        document.getElementById('weight').addEventListener('input', function() {
+            this.classList.remove('error');
+            document.getElementById('weight-error').classList.remove('show');
+        });
+
+        document.getElementById('height').addEventListener('input', function() {
+            this.classList.remove('error');
+            document.getElementById('height-error').classList.remove('show');
+        });
+
+        // Allow Enter key to calculate
+        document.getElementById('weight').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') calculateAndSave();
+        });
+
+        document.getElementById('height').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') calculateAndSave();
+        });
+    </script>
+</body>
+</html>
